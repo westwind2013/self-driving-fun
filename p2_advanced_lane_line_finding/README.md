@@ -114,7 +114,7 @@ Besides the aforementioned, video pipeline did following more.
 
 * It average the last 10 fitted lane lines for smoothing the plotting in videos. 
 
-The pipeline works well with [project_video.mp4](./output_videos/project_video.mp4). 
+The pipeline works well with [project_video.mp4](https://youtu.be/-dI5byoidbQ). 
 
 
 
