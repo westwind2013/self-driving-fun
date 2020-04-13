@@ -130,4 +130,4 @@ The pipeline works well with [project_video.mp4](./output_videos/project_video.m
 
 * A more systematic and atuomatic way is needed for better parameter setting
 
-* Varying strategies are needed for various road situation, like strong lights, blurred lines, and sharp turns. Like high-order polynomial fitting might help for sharp turns. Better pixel selection in S channel of HSL color space might be needed for strong/weak light condition. 
+* Varying strategies are needed for various road situation, like strong/weak lights, blurred lines, and sharp turns. High-order polynomial fitting might help for sharp turns. RGB channel based channel selection should only be used on good-condition roads (bright yellow/white lanes), while it should be avoided in situations like strong/weak light condition. S-channel in HSL color space is instead persistently good. 
