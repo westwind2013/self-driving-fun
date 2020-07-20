@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+import data
+import model
+import tensorflow as tf
+
+BATCH_SIZE = 128
+EPOCH_COUNT = 3
+
+if __name__ == '__main__':
+  X_train, X_valid, y_train, y_valid = data.prepare_data()
+  generate_valid_batch = data.generate_validation_data(BATCH_SIZE, 
+                                                       X_valid, 
+                                                       y_valid)
+  model.train(
+    data.generate_training_data(BATCH_SIZE, X_train, y_train),
+    data.generate_validation_data(BATCH_SIZE, X_valid, y_valid),
+    EPOCH_COUNT, 
+    len(X_train),
+    len(X_valid)
+  )
+  tf.app.run()
