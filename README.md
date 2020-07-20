@@ -23,8 +23,9 @@ My project includes the following files:
 * model.py, a module training the prediction model
 * train, a script training the prediction model
 * drive, a script driving car using our prediction model
-* model.json, a data file containing saved model
-* model.h5, a data file containing saved model weights
+* model/model.json, a data file containing saved model
+* model/model.h5, a data file containing saved model weights
+* video.mp4, the simulation run video of track 1
 
 #### 2. Submission includes functional code
 
