@@ -58,9 +58,8 @@ FusionEKF::~FusionEKF() {}
 void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   
   if (!is_initialized_) {
-    // first measurement
+    // Set the first measurement
     ekf_.x_ = VectorXd(4);
-    ekf_.x_ << 1, 1, 1, 1;
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       // Convert radar from polar to cartesian coordinates and initialize state.
@@ -82,7 +81,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       ekf_.x_ << x, y, vx , vy;
     }
     else {
-      // No velocity and coordinates are cartesian already.
+      // velocity == 0
       ekf_.x_ << measurement_pack.raw_measurements_[0], measurement_pack.raw_measurements_[1], 0, 0;
     }
 
