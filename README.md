@@ -11,3 +11,5 @@
 * P4: Behavior Cloning
 
 * P5: State Prediction based Extended Kalman Filter
+
+* P6: Localization Using Particle Filter
