@@ -13,3 +13,5 @@
 * P5: State Prediction based Extended Kalman Filter
 
 * P6: Localization Using Particle Filter
+
+* P7: Highway driving (Path Planning)
