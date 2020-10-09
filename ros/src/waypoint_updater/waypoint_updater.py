@@ -5,6 +5,7 @@ import math
 import numpy as np
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32
 from scipy.spatial import KDTree
 
 '''
@@ -36,19 +37,37 @@ class WaypointUpdater(object):
         self.base_waypoints = None
         self.waypoints_2d = None
         self.waypoint_tree = None
+        self.stopline_wp_idx = -1
 
         # Initialize the node
         rospy.init_node('waypoint_updater')
 
         # Create subscribers
-        rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
+        rospy.Subscriber('/current_pose', PoseStamped, self.pose_callback)
+        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_callback)
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_callback)
 
         # Create a publisher
-        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
+        self.final_waypoints_publisher = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         self.exec_at_hz(50)
+
+    def decelerate_waypoints(self, waypoints, closest_idx):
+        decel_waypoints = []
+        for i, wp in enumerate(waypoints):
+            p = Waypoint()
+            p.pose = wp.pose
+
+            stop_idx = max(self.stopline_wp_idx - closest_idx - 2, 0)
+            dist = self.distance(waypoints, i, stop_idx)
+            velocity = math.sqrt(2 * MAX_DECEL * dist)
+            if velocity < 1:
+                velocity = 0
+
+            p.twist.twist.linear.x = min(velocity, wp.twist.twist.linear.x)
+            decel_waypoints.append(p)
+
+        return decel_waypoints
 
     def distance(self, waypoints, wp1, wp2):
         dist = 0
@@ -88,32 +107,31 @@ class WaypointUpdater(object):
     def get_waypoint_velocity(self, waypoint):
         return waypoint.twist.twist.linear.x
 
-    def obstacle_cb(self, msg):
-        # TODO: Callback for /obstacle_waypoint message. We will implement it later
-        pass
-
     def publish_waypoints(self, idx):
         # Publish final waypoints
         lane = Lane()
         lane.header = self.base_waypoints.header
         lane.waypoints = self.base_waypoints.waypoints[idx: idx + LOOKAHEAD_WPS]
-        self.final_waypoints_pub.publish(lane)
 
-    def pose_cb(self, msg):
-        # Update the pose
+        if self.stopline_wp_idx != -1 and self.stopline_wp_idx < farthest_idx:
+            lane.waypoints = self.decelerate_waypoints(lane.waypoints, idx)
+
+        self.final_waypoints_publisher.publish(lane)
+
+    def pose_callback(self, msg):
         self.pose = msg
 
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
-    def waypoints_cb(self, waypoints):
+    def waypoints_callback(self, waypoints):
         self.base_waypoints = waypoints
         if not self.waypoints_2d:
             self.waypoints_2d = [[wp.pose.pose.position.x, wp.pose.pose.position.y] for wp in waypoints.waypoints]
             self.waypoint_tree = KDTree(self.waypoints_2d)
         assert self.waypoint_tree != None
 
-    def traffic_cb(self, msg):
+    def traffic_callback(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
         pass
 
