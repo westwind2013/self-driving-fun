@@ -25,19 +25,12 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 
 
 # Number of waypoints we will publish. You can change this number
-LOOKAHEAD_WPS = 200
-
+LOOKAHEAD_WPS = 50
+MAX_DECEL = 0.5
 
 class WaypointUpdater(object):
 
     def __init__(self):
-
-        # Initialize member variables
-        self.pose = None
-        self.base_waypoints = None
-        self.waypoints_2d = None
-        self.waypoint_tree = None
-        self.stopline_wp_idx = -1
 
         # Initialize the node
         rospy.init_node('waypoint_updater')
@@ -50,7 +43,14 @@ class WaypointUpdater(object):
         # Create a publisher
         self.final_waypoints_publisher = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-        self.exec_at_hz(50)
+        # Initialize member variables
+        self.pose = None
+        self.base_waypoints = None
+        self.waypoints_2d = None
+        self.waypoint_tree = None
+        self.stopline_wp_idx = -1
+
+        self.exec_at_hz(5)
 
     def decelerate_waypoints(self, waypoints, closest_idx):
         decel_waypoints = []
@@ -83,9 +83,10 @@ class WaypointUpdater(object):
         Execute code at a given frequency, hz
         """
         while not rospy.is_shutdown():
-            if self.pose and self.base_waypoints:
+            if self.pose and self.waypoint_tree:
                 idx = self.get_closest_waypoint_idx()
                 self.publish_waypoints(idx)
+            rate.sleep()
 
     def get_closest_waypoint_idx(self):
         """
@@ -110,10 +111,11 @@ class WaypointUpdater(object):
     def publish_waypoints(self, idx):
         # Publish final waypoints
         lane = Lane()
+        limit = idx + LOOKAHEAD_WPS
         lane.header = self.base_waypoints.header
-        lane.waypoints = self.base_waypoints.waypoints[idx: idx + LOOKAHEAD_WPS]
+        lane.waypoints = self.base_waypoints.waypoints[idx: limit]
 
-        if self.stopline_wp_idx != -1 and self.stopline_wp_idx < farthest_idx:
+        if self.stopline_wp_idx != -1 and self.stopline_wp_idx < limit:
             lane.waypoints = self.decelerate_waypoints(lane.waypoints, idx)
 
         self.final_waypoints_publisher.publish(lane)
@@ -133,7 +135,7 @@ class WaypointUpdater(object):
 
     def traffic_callback(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
-        pass
+        self.stopline_wp_idx = msg.data
 
 if __name__ == '__main__':
     try:
