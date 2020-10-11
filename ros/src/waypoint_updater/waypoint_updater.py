@@ -36,9 +36,9 @@ class WaypointUpdater(object):
         rospy.init_node('waypoint_updater')
 
         # Create subscribers
-        rospy.Subscriber('/current_pose', PoseStamped, self.pose_callback)
-        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_callback)
-        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_callback)
+        rospy.Subscriber('/current_pose', PoseStamped, self.set_pose)
+        rospy.Subscriber('/base_waypoints', Lane, self.set_waypoints)
+        rospy.Subscriber('/traffic_waypoint', Int32, self.set_traffic_info)
 
         # Create a publisher
         self.final_waypoints_publisher = rospy.Publisher('final_waypoints', Lane, queue_size=1)
@@ -52,6 +52,14 @@ class WaypointUpdater(object):
 
         self.exec_at_hz(5)
 
+    def calculate_distance(self, waypoints, wp1, wp2):
+        dist = 0
+        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
+        for i in range(wp1, wp2+1):
+            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
+            wp1 = i
+        return dist
+
     def decelerate_waypoints(self, waypoints, closest_idx):
         decel_waypoints = []
         for i, wp in enumerate(waypoints):
@@ -59,7 +67,7 @@ class WaypointUpdater(object):
             p.pose = wp.pose
 
             stop_idx = max(self.stopline_wp_idx - closest_idx - 2, 0)
-            dist = self.distance(waypoints, i, stop_idx)
+            dist = self.calculate_distance(waypoints, i, stop_idx)
             velocity = math.sqrt(2 * MAX_DECEL * dist)
             if velocity < 1:
                 velocity = 0
@@ -69,19 +77,11 @@ class WaypointUpdater(object):
 
         return decel_waypoints
 
-    def distance(self, waypoints, wp1, wp2):
-        dist = 0
-        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
-        for i in range(wp1, wp2+1):
-            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
-            wp1 = i
-        return dist
-
     def exec_at_hz(self, hz):
-        rate = rospy.Rate(hz)
         """
         Execute code at a given frequency, hz
         """
+        rate = rospy.Rate(hz)
         while not rospy.is_shutdown():
             if self.pose and self.waypoint_tree:
                 idx = self.get_closest_waypoint_idx()
@@ -120,22 +120,22 @@ class WaypointUpdater(object):
 
         self.final_waypoints_publisher.publish(lane)
 
-    def pose_callback(self, msg):
+    def set_pose(self, msg):
         self.pose = msg
 
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
-    def waypoints_callback(self, waypoints):
+    def set_waypoints(self, waypoints):
         self.base_waypoints = waypoints
         if not self.waypoints_2d:
             self.waypoints_2d = [[wp.pose.pose.position.x, wp.pose.pose.position.y] for wp in waypoints.waypoints]
             self.waypoint_tree = KDTree(self.waypoints_2d)
         assert self.waypoint_tree != None
 
-    def traffic_callback(self, msg):
-        # TODO: Callback for /traffic_waypoint message. Implement
+    def set_traffic_info(self, msg):
         self.stopline_wp_idx = msg.data
+
 
 if __name__ == '__main__':
     try:
