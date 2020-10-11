@@ -26,14 +26,14 @@ class Controller(object):
 
         kp = 0.3
         ki = 0.1
-        kd = .0
-        min_throttle = 0
+        kd = 0.0
+        min_throttle = 0.0
         max_throttle = 0.2
         self.throttle_controller = PID(kp, ki, kd, min_throttle, max_throttle)
 
         tau = 0.5
         ts = 0.02
-        self.vel_lpf = LowPassFilter(tau, ts)
+        self.velocity_low_pass_filter = LowPassFilter(tau, ts)
 
         self.vehicle_mass = vehicle_mass
         self.fuel_capacity = fuel_capacity
@@ -49,21 +49,18 @@ class Controller(object):
             self.throttle_controller.reset()
             return 0, 0, 0
 
-        current_velocity = self.vel_lpf.filt(current_velocity)
+        current_velocity = self.velocity_low_pass_filter.filt(current_velocity)
         steering = self.yaw_controller.get_steering(linear_velocity,
                                                     angular_velocity,
                                                     current_velocity)
 
         velocity_error = linear_velocity - current_velocity
-        self.last_velocity = current_velocity
-
         current_time = rospy.get_time()
         sample_time = current_time - self.last_time
         self.last_time = current_time
-
         throttle = self.throttle_controller.step(velocity_error, sample_time)
-        brake = 0
 
+        brake = 0
         if linear_velocity == 0 and current_velocity < 0:
             throttle = 0
             brake = 400

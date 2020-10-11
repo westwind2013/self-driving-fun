@@ -34,14 +34,6 @@ that we have created in the `__init__` function.
 class DBWNode(object):
     def __init__(self):
 
-        self.current_velocity = None
-        self.linear_velocity = None
-        self.angular_velocity = None
-        self.dbw_enabled = None
-        self.throttle = 0
-        self.steering = 0
-        self.brake = 0
-
         rospy.init_node('dbw_node')
 
         vehicle_mass = rospy.get_param('~vehicle_mass', 1736.35)
@@ -69,16 +61,25 @@ class DBWNode(object):
 
         # Create publishers
         self.steer_publisher = rospy.Publisher('/vehicle/steering_cmd',
-                                         SteeringCmd, queue_size=1)
+                SteeringCmd, queue_size=1)
         self.throttle_publisher = rospy.Publisher('/vehicle/throttle_cmd',
-                                            ThrottleCmd, queue_size=1)
+                ThrottleCmd, queue_size=1)
         self.brake_publisher = rospy.Publisher('/vehicle/brake_cmd',
-                                         BrakeCmd, queue_size=1)
+                BrakeCmd, queue_size=1)
 
         # Create subscribers
         rospy.Subscriber('/current_velocity', TwistStamped, self.set_current_velocity)
         rospy.Subscriber('/twist_cmd', TwistStamped, self.set_velocity)
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.set_dbw_enabled)
+
+        # Initialize member variables
+        self.current_velocity = None
+        self.linear_velocity = None
+        self.angular_velocity = None
+        self.dbw_enabled = None
+        self.throttle = 0
+        self.steering = 0
+        self.brake = 0
 
         self.exec_at_hz(50)
 
