@@ -3,7 +3,7 @@ import tensorflow as tf
 import numpy as np
 from styx_msgs.msg import TrafficLight
 
-PATH_TO_GRAPH = ''
+PATH_TO_GRAPH = 'light_classification/model/frozen_inference_graph.pb'
 THRESHOLD = .5
 
 
