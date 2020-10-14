@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import rospy
 from std_msgs.msg import Int32
 from geometry_msgs.msg import PoseStamped, Pose
@@ -75,19 +76,32 @@ class TLDetector(object):
             return (idx + 1) % len(self.waypoints_2d)
         return idx
 
-    def get_light_state(self, light):
-        """Determines the current color of the traffic light
+    def get_light_state_via_shortcut(self, light):
+        """
+        Determines the current color of the traffic light with a shortcut,
+        i.e., we directly return the state of light available in simulation.
 
         Args:
             light (TrafficLight): light to classify
 
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
-
         """
+
         return light.state
 
+    def get_light_state(self, light):
         """
+        Determines the current color of the traffic light via our traffic light
+        classifier.
+
+        Args:
+            light (TrafficLight): light to classify
+
+        Returns:
+            int: ID of traffic light color (specified in styx_msgs/TrafficLight)
+        """
+
         if(not self.has_image):
             self.prev_light_loc = None
             return False
@@ -96,7 +110,6 @@ class TLDetector(object):
 
         #Get classification
         return self.light_classifier.get_classification(cv_image)
-        """
 
     def process_images(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
@@ -158,7 +171,7 @@ class TLDetector(object):
                     line_wp_idx = temp_wp_idx
 
         if closest_light:
-            state = self.get_light_state(closest_light)
+            state = self.get_light_state_via_shortcut(closest_light)
             return line_wp_idx, state
 
         return -1, TrafficLight.UNKNOWN
