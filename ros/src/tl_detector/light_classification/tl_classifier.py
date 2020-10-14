@@ -1,4 +1,6 @@
 import rospy
+import tensorflow as tf
+import numpy as np
 from styx_msgs.msg import TrafficLight
 
 PATH_TO_GRAPH = ''
@@ -57,8 +59,8 @@ class TLClassifier(object):
                 prediction = TrafficLight.YELLOW
                 rospy.logdebug('YELLOW')
             else:
-                rospy.debuglog('UNKNOWN')
+                rospy.logdebug('UNKNOWN')
         else:
-            rospy.debuglog('UNKNOWN -- below threshold')
+            rospy.logdebug('UNKNOWN -- below threshold')
 
         return prediction
