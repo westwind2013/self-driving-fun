@@ -51,16 +51,16 @@ class TLClassifier(object):
         if scores[0] > THRESHOLD:
             if classes[0] == 1:
                 prediction = TrafficLight.GREEN
-                rospy.logdebug('Green')
+                rospy.loginfo('Green')
             elif classes[0] == 2:
                 prediction = TrafficLight.RED
-                rospy.logdebug('RED')
+                rospy.loginfo('RED')
             elif classes[0] == 3:
                 prediction = TrafficLight.YELLOW
-                rospy.logdebug('YELLOW')
+                rospy.loginfo('YELLOW')
             else:
-                rospy.logdebug('UNKNOWN')
+                rospy.loginfo('UNKNOWN')
         else:
-            rospy.logdebug('UNKNOWN -- below threshold')
+            rospy.loginfo('UNKNOWN -- below threshold')
 
         return prediction
