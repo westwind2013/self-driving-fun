@@ -3,7 +3,8 @@ import tensorflow as tf
 import numpy as np
 from styx_msgs.msg import TrafficLight
 
-PATH_TO_GRAPH = 'light_classification/model/frozen_inference_graph.pb'
+PATH_TO_MY_MODEL = 'light_classification/model/frozen_inference_graph.pb'
+PATH_TO_BORROWED_MODEL = 'light_classification/model/frozen_inference_graph_borrowed.pb'
 THRESHOLD = .5
 
 
@@ -15,7 +16,7 @@ class TLClassifier(object):
         self.graph = tf.Graph()
         with self.graph.as_default():
             graph_df = tf.GraphDef()
-            with tf.gfile.GFile(PATH_TO_GRAPH, 'rb') as fid:
+            with tf.gfile.GFile(PATH_TO_BORROWED_MODEL, 'rb') as fid:
                 graph_df.ParseFromString(fid.read())
                 tf.import_graph_def(graph_df, name='')
 
