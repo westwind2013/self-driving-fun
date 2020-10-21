@@ -1,4 +1,10 @@
 .ipynb_checkpoints
 *.h5
-models
 *.swp
+*.py[cod]
+
+models
+build
+devel
+
+profile.tmp
